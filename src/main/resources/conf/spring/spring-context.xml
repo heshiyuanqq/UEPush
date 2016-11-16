@@ -1,21 +1,73 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+<?xml version="1.0" encoding="UTF-8"?> 
+	<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
 	xsi:schemaLocation="
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-	http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
-	<context:annotation-config/>
-	<context:component-scan base-package="com.ue.push" />
-	
-	<bean id="propertyConfigurer"   class="com.ue.push.utils.CustomizedPropertyPlaceholderConfigurer">
-	    <property name="ignoreUnresolvablePlaceholders" value="true"></property>
-	    <property name="location">
-	            <value>classpath:conf/constant.properties</value>
-	    </property>
-	</bean>
-	
-	<import resource="classpath:conf/mybatis-context.xml" />
-</beans>
+	http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	http://code.alibabatech.com/schema/dubbo  http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+	    <context:annotation-config/>
+		<context:component-scan base-package="com.ue.push" />
+		
+		<bean id="propertyConfigurer"   class="com.ue.push.utils.CustomizedPropertyPlaceholderConfigurer">
+		    <property name="ignoreUnresolvablePlaceholders" value="true"></property>
+		    <property name="location">
+		            <value>classpath:conf/constant.properties</value>
+		    </property>
+		</bean>
+		
+		<import resource="classpath:conf/mybatis-context.xml" />
+      
+      
+      
+      
+ 		<!--***********************************dubbo暴露服务配置开始************************************ -->
+        <!-- 具体的实现bean -->  
+        <bean id="testService" class="com.ue.push.service.impl.TestServiceImpl" />  
+      
+        <!-- 提供方应用信息，用于计算依赖关系 -->  
+        <dubbo:application name="UEPush" />  
+      
+        <!-- 使用multicast广播注册中心暴露服务地址 -->  
+        <!--<dubbo:registry address="multicast://224.5.6.7:1234" /> -->  
+          
+        <!-- 使用zookeeper注册中心暴露服务地址即zookeeper的所在服务器ip地址和端口号 -->  
+		<dubbo:registry  address="zookeeper://127.0.0.1:2181"/><!-- zookeeper注册中心的地址 -->
+
+        
+      
+        <!-- 用dubbo协议在20880端口暴露服务 -->  
+        <dubbo:protocol name="dubbo" port="20880" /><!--   该服务自己本身的地址[即消费者会从上面的zookeeper注册中心找到该地址，然后访问该地址调用服务，dubbo底层可能使用tcp协议的Netty框架] -->
+      
+        <!-- 声明需要暴露的服务接口 -->  
+        <dubbo:service interface="com.ue.uecommon.serviceInterface.TestService" ref="testService" />  
+      	 <!--***********************************dubbo暴露服务配置结束************************************ -->
+    </beans>  
+   
+  <!--  配置后效果为：
+       服务地址: 	dubbo://192.168.0.100:20880/service.interfac.DemoService?anyhost=true&
+       																	 application=ServiceProvider&
+       																	 dubbo=2.5.3&
+       																	 interface=service.interfac.DemoService&
+       																	 methods=sayHello,getUsers&
+       																	 pid=2188&
+       																	 side=provider×tamp=1477386060485
+	动态配置: 	
+	主机名: 	(PC-20160819ZYGW)192.168.0.100:20880
+	时间戳: 	2016-10-25 17:01:00 (1477386060485)
+	Dubbo版本: 	2.5.3
+	方法列表: 	sayHello,getUsers
+	应用名: 	ServiceProvider
+	所属端: 	provider
+	进程号: 	2188
+	接口名: 	service.interfac.DemoService
+	绑定所有IP: 	true
+	类型: 	动态
+	状态: 	已启用
+	检查: 	正常
+	-->  
+
 
